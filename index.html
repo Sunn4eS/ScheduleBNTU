@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Расписание группы 11201224</title>
+  <style>
+    :root {
+      --bg-color: #f4f6f9;
+      --card-bg: #ffffff;
+      --text-color: #333333;
+      --primary-color: #2563eb;
+      --border-color: #e2e8f0;
+      --accent-color: #eff6ff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 15px;
+      color: #1e293b;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      background: var(--card-bg);
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      margin-bottom: 25px;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    label {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    select {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      outline: none;
+      font-size: 0.95rem;
+      background-color: #fff;
+      cursor: pointer;
+    }
+
+    select:focus {
+      border-color: var(--primary-color);
+    }
+
+    .schedule-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .day-column {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .day-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--border-color);
+      color: var(--primary-color);
+    }
+
+    .lesson-card {
+      background: #f8fafc;
+      border-left: 4px solid var(--primary-color);
+      border-radius: 6px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: transform 0.1s ease;
+    }
+
+    .lesson-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .lesson-time {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #64748b;
+    }
+
+    .lesson-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: #0f172a;
+    }
+
+    .lesson-type {
+      display: inline-block;
+      font-size: 0.75rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #e2e8f0;
+      font-weight: 600;
+      width: fit-content;
+      margin-bottom: 2px;
+    }
+
+    .type-лк { background: #dbeafe; color: #1e40af; }
+    .type-пр { background: #dcfce7; color: #166534; }
+    .type-лб { background: #fef3c7; color: #92400e; }
+
+    .lesson-details {
+      font-size: 0.85rem;
+      color: #475569;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .empty-day {
+      color: #94a3b8;
+      font-style: italic;
+      font-size: 0.9rem;
+      text-align: center;
+      padding: 20px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>Расписание занятий группы 11201224</h1>
+    </header>
+
+    <div class="controls">
+      <div class="control-group">
+        <label for="subgroup">Подгруппа:</label>
+        <select id="subgroup" onchange="renderSchedule()">
+          <option value="1">1-я подгруппа</option>
+          <option value="2">2-я подгруппа</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label for="week">Неделя:</label>
+        <select id="week" onchange="renderSchedule()">
+          <option value="1">1-я неделя</option>
+          <option value="2">2-я неделя</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="schedule-grid" id="scheduleGrid">
+      <!-- Карта дней недели будет здесь -->
+    </div>
+  </div>
+
+  <script>
+    // База данных расписания группы 11201224
+    const scheduleData = {
+      "Понедельник": [
+        {
+          time: "12:20-13:55",
+          type: "пр",
+          title: "Метрология и контроль качества",
+          teacher: "доц. Снежков Д.Ю.",
+          room: "а.828 к.15",
+          weeks: [1],
+          subgroups: [1, 2]
+        },
+        {
+          time: "12:20-13:55",
+          type: "пр",
+          title: "Основы управления интеллектуальной собственностью",
+          teacher: "Лесницкая В.А.",
+          room: "а.5п к.15",
+          weeks: [2],
+          subgroups: [1, 2]
+        },
+        {
+          time: "14:15-15:50",
+          type: "пр",
+          title: "Архитектура",
+          teacher: "Платонова Р.М.",
+          room: "а.1007 к.15",
+          weeks: [1, 2],
+          subgroups: [1, 2]
+        },
+        {
+          time: "16:00-17:35",
+          type: "пр",
+          title: "Физическая культура",
+          teacher: "-",
+          room: "-",
+          weeks: [1, 2],
+          subgroups: [1, 2]
+        }
+      ],
+      "Вторник": [
+        {
+          time: "12:20-13:55",
+          type: "лк",
+          title: "Технология строительного производства",
+          teacher: "доц. Шевко В.В.",
+          room: "а.1п к.15 +ВТФ",
+          weeks: [1, 2],
+          subgroups: [1, 2]
+        },
+        {
+          time: "14:15-15:50",
+          type: "лк",
+          title: "Механика грунтов, основания и фундаменты",
+          teacher: "доц. Бойко И.Л.",
+          room: "а.1п к.15 +ВТФ",
+          weeks: [1, 2],
+          subgroups: [1, 2]
+        },
+        {
+          time: "16:00-17:35",
+          type: "лк",
+          title: "Архитектура",
+          teacher: "Платонова Р.М.",
+          room: "а.1п к.15 +ВТФ",
+          weeks: [1, 2],
+          subgroups: [1, 2]
+        }
+      ],
+      "Среда": [
+        {
+          time: "12:20-13:55",
+          type: "лк",
+          title: "Основы управления интеллектуальной собственностью",
+          teacher: "Лесницкая В.А.",
+          room: "а.1п к.15",
+          weeks: [2],
+          subgroups: [1, 2]
+        },
+        {
+          time: "14:15-15:50",
+          type: "лк",
+          title: "Теплоснабжение и вентиляция",
+          teacher: "Медведева-Липовка А.С.",
+          room: "а.1п к.15 +ВТФ",
+          weeks: [1, 2],
+          subgroups: [1, 2]
+        },
+        {
+          time: "16:00-17:35",
+          type: "лк",
+          title: "Строительная механика",
+          teacher: "доц. Вербицкая О.Л.",
+          room: "а.1п к.15 +ВТФ",
+          weeks: [1, 2],
+          subgroups: [1, 2]
+        },
+        {
+          time: "18:05-19:40",
+          type: "лк",
+          title: "Строительная механика",
+          teacher: "доц. Вербицкая О.Л.",
+          room: "а.1п к.15 +ВТФ",
+          weeks: [1],
+          subgroups: [1, 2]
+        },
+        {
+          time: "18:05-19:40",
+          type: "лк",
+          title: "Метрология и контроль качества",
+          teacher: "доц. Снежков Д.Ю.",
+          room: "а.1п к.15",
+          weeks: [2],
+          subgroups: [1, 2]
+        }
+      ],
+      "Четверг": [
+        {
+          time: "10:25-12:00",
+          type: "лб",
+          title: "Технология строительного производства",
+          teacher: "Потес Т.А.",
+          room: "а.828 к.15",
+          weeks: [2],
+          subgroups: [2]
+        },
+                {
+          time: "10:25-12:00",
+          type: "лб",
+          title: "Технология строительного производства",
+          teacher: "Потес Т.А.",
+          room: "а.828 к.15",
+          weeks: [1],
+          subgroups: [1]
+        },
+        {
+          time: "11:40 / 12:20-13:55",
+          type: "лб",
+          title: "Теплоснабжение и вентиляция",
+          teacher: "Воробьева А.С.",
+          room: "а.14 к.1",
+          weeks: [2],
+          subgroups: [1]
+        },
+        {
+          time: "11:40 / 12:20-13:55",
+          type: "лб",
+          title: "Теплоснабжение и вентиляция",
+          teacher: "Воробьева А.С.",
+          room: "а.14 к.1",
+          weeks: [1],
+          subgroups: [2]
+        },
+        {
+          time: "12:20-13:55",
+          type: "лб",
+          title: "Механика грунтов, основания и фундаменты",
+          teacher: "Медведев Л.Ю.",
+          room: "а.706 к.15",
+          weeks: [2],
+          subgroups: [2]
+        },
+        {
+          time: "12:20-13:55",
+          type: "лб",
+          title: "Механика грунтов, основания и фундаменты",
+          teacher: "Медведев Л.Ю.",
+          room: "а.706 к.15",
+          weeks: [1],
+          subgroups: [1]
+        },
+        {
+          time: "14:15-15:50",
+          type: "пр",
+          title: "Механика грунтов, основания и фундаменты",
+          teacher: "Антипенко А.В.",
+          room: "а.5п к.15",
+          weeks: [1, 2],
+          subgroups: [1, 2]
+        },
+      ],
+      "Пятница": [
+        {
+          time: "12:20-13:35",
+          type: "пр",
+          title: "Технология строительного производства",
+          teacher: "Пелюшкевич A.И.",
+          room: "а.821 к.15",
+          weeks: [1, 2],
+          subgroups: [1, 2]
+        },
+        {
+          time: "14:15-15:50",
+          type: "пр",
+          title: "Теплоснабжение и вентиляция",
+          teacher: "Воробьева А.С.",
+          room: "а.232 к.15",
+          weeks: [1, 2],
+          subgroups: [1, 2]
+        },
+        {
+          time: "16:00-17:35",
+          type: "пр",
+          title: "Строительная механика",
+          teacher: "Вербицкая О.Л.",
+          room: "а.5п к.15",
+          weeks: [1, 2],
+          subgroups: [1, 2]
+        }
+      ],
+      "Суббота": [
+        {
+          time: "10:25-12:00",
+          type: "конс",
+          title: "Консультация по КП: Технология строительного производства",
+          teacher: "Пелюшкевич А.И.",
+          room: "а.825 к.15",
+          weeks: [1, 2],
+          subgroups: [1, 2]
+        },
+        {
+          time: "12:20-13:55",
+          type: "конс",
+          title: "Консультация по КП: Теплоснабжение и вентиляция",
+          teacher: "Воробьева А.С.",
+          room: "а.232 к.15",
+          weeks: [1, 2],
+          subgroups: [1, 2]
+        },
+        {
+          time: "14:15-15:50",
+          type: "инфо",
+          title: "Информационный час / Крайняя суббота месяца",
+          teacher: "Саноцкая Е.С.",
+          room: "а.904 к.15",
+          weeks: [1, 2],
+          subgroups: [1, 2]
+        }
+      ]
+    };
+
+    function renderSchedule() {
+      const selectedSubgroup = parseInt(document.getElementById('subgroup').value);
+      const selectedWeek = parseInt(document.getElementById('week').value);
+      const grid = document.getElementById('scheduleGrid');
+
+      grid.innerHTML = '';
+
+      for (const [day, lessons] of Object.entries(scheduleData)) {
+        // Фильтрация уроков по неделе и подгруппе
+        const filteredLessons = lessons.filter(lesson => 
+          lesson.subgroups.includes(selectedSubgroup) && 
+          lesson.weeks.includes(selectedWeek)
+        );
+
+        const dayCol = document.createElement('div');
+        dayCol.className = 'day-column';
+
+        const dayTitle = document.createElement('div');
+        dayTitle.className = 'day-title';
+        dayTitle.innerText = day;
+        dayCol.appendChild(dayTitle);
+
+        if (filteredLessons.length === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'empty-day';
+          empty.innerText = 'Занятий нет';
+          dayCol.appendChild(empty);
+        } else {
+          filteredLessons.forEach(lesson => {
+            const card = document.createElement('div');
+            card.className = 'lesson-card';
+
+            const typeClass = `type-${lesson.type.toLowerCase()}`;
+            
+            card.innerHTML = `
+              <div class="lesson-time">${lesson.time}</div>
+              <div><span class="lesson-type ${typeClass}">${lesson.type.toUpperCase()}</span></div>
+              <div class="lesson-title">${lesson.title}</div>
+              <div class="lesson-details">
+                <div>👨‍🏫 ${lesson.teacher}</div>
+                <div>📍 ${lesson.room}</div>
+              </div>
+            `;
+            dayCol.appendChild(card);
+          });
+        }
+
+        grid.appendChild(dayCol);
+      }
+    }
+
+    // Инициализация при загрузке
+    renderSchedule();
+  </script>
+</body>
+</html>
